@@ -27,6 +27,22 @@ contract SmartBank is Ownable{
   mapping (address => bool) public tokensTraded;
 
   /**
+   * @dev Throws if called by any other address
+   */
+  modifier onlyFund() {
+    require(msg.sender == fund);
+    _;
+  }
+
+  /**
+   * @dev Throws if fund not set
+   */
+  modifier onlyIfFundSet() {
+    require(isFundSet);
+    _;
+  }
+
+  /**
   * @dev onwer can set or change FUND
   */
 
@@ -42,8 +58,7 @@ contract SmartBank is Ownable{
   * @dev Approve All SmartBank tokens for SmartFund
   */
 
-  function approveTokensForFund() private {
-    require(isFundSet);
+  function approveTokensForFund() private onlyIfFundSet{
 
     uint256 balance;
 
@@ -64,10 +79,7 @@ contract SmartBank is Ownable{
   * @dev Adds a token to tokensTraded if it's not already there
   * @param _token    The token to add
   */
-  function addTokenInBank(address _token) public{
-    require(isFundSet);
-    // Only Fund contract can set tokens
-    require(msg.sender == fund);
+  function addTokenInBank(address _token) public onlyFund, onlyIfFundSet{
 
     // don't add token to if we already have it in our list
     if (tokensTraded[_token] || (_token == address(ETH_TOKEN_ADDRESS)))
@@ -92,9 +104,8 @@ contract SmartBank is Ownable{
   * @dev Fund can recive ETH from BANK via Interface
   * @param _value ETH value in wei
   */
-  function sendETHToFund(uint256 _value) public {
+  function sendETHToFund(uint256 _value) public onlyFund, onlyIfFundSet{
     // TODO add and balance ETH allowance modifiers
-    require(isFundSet);
     address(fund).transfer(_value);
   }
 
@@ -104,17 +115,13 @@ contract SmartBank is Ownable{
   // SEND to exchange directly from BANK, just trigger in SEND vie IBank in FUND!
   // NOT FINISHED
 
-  function sendETH(address _to, uint256 _value) public {
+  function sendETH(address _to, uint256 _value) public onlyFund, onlyIfFundSet{
     // TODO add add check balance ETH and  allowance modifiers
-    require(isFundSet);
-    require(msg.sender == fund);
     address(_to).transfer(_value);
   }
 
-  function sendTokens(address _to, uint256 _value, ERC20 _token) public {
+  function sendTokens(address _to, uint256 _value, ERC20 _token) public onlyFund, onlyIfFundSet{
     // TODO add and balance and allowance modifiers
-    require(isFundSet);
-    require(msg.sender == fund);
     _token.transfer(_to, _value);
   }
 
