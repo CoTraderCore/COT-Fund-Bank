@@ -1,6 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "./SmartFund.sol";
+import "./SmartBank.sol";
 import "./PermittedExchangesInterface.sol";
 import "./zeppelin-solidity/contracts/ownership/Ownable.sol";
 
@@ -9,6 +10,7 @@ import "./zeppelin-solidity/contracts/ownership/Ownable.sol";
 */
 contract SmartFundRegistry is Ownable {
   SmartFund[] public smartFunds;
+  SmartBank[] public smartBanks;
 
   // The Smart Contract which stores the addresses of all the authorized Exchange Portals
   PermittedExchangesInterface public permittedExchanges;
@@ -54,6 +56,7 @@ contract SmartFundRegistry is Ownable {
 
     address owner = msg.sender;
 
+    // Create smart fund
     SmartFund smartFund = new SmartFund(
       owner,
       _name,
@@ -65,6 +68,10 @@ contract SmartFundRegistry is Ownable {
     );
 
     smartFunds.push(smartFund);
+
+    // Create smart bank
+    SmartBank smartBank = new SmartBank();
+    smartBanks.push(smartBank);
 
     emit SmartFundAdded(address(smartFund), owner);
   }

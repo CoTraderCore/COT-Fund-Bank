@@ -7,4 +7,8 @@ contract SmartBank {
 
   }
 
+  function sendETHToFund(uint256 _value) public {
+  
+  }
+
 }
