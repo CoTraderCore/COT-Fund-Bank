@@ -179,7 +179,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   */
   function _sendTokensFromBank(address _to, uint256 _value, ERC20 _token) private{
     require(isBankSet);
-    Ibank.sendTokens(_to, _value, token);
+    Ibank.sendTokens(_to, _value, _token);
   }
 
   /**
@@ -215,7 +215,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   * @param _type                type of exchange
   */
   function _rebalance(uint256 _value, uint256 _type) private{
-
+  require(isBankSet);
   // checking if not empty token array
   // array should be more 1 because we store ETH in token array also
   if(tokenAddresses.length > 1){
@@ -253,6 +253,10 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     KyberAdditionalParams
     );
   }
+
+  // AFTER Rebalance we need send remaining ETH from FUND to BANK
+  bank.transfer(address(this).balance);
+
   }else{
     return;
   }

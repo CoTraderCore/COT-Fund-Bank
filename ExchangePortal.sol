@@ -12,7 +12,7 @@ import "./zeppelin-solidity/contracts/token/ERC20/DetailedERC20.sol";
 */
 contract ExchangePortal is ExchangePortalInterface, Ownable {
   using SafeMath for uint256;
-  
+
   enum ExchangeType { Kyber }
 
   KyberNetworkInterface kyber;
@@ -56,17 +56,17 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
     ERC20 _destination,
     uint256 _type,
     bytes32[] _additionalArgs
-  ) 
+  )
     external
     payable
     tokenEnabled(_destination)
     returns (uint256)
   {
-    
+
     require(_source != _destination);
 
     uint256 receivedAmount;
-    
+
     if (_source == ETH_TOKEN_ADDRESS) {
       require(msg.value == _sourceAmount);
     } else {
@@ -76,7 +76,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
     if (_type == uint(ExchangeType.Kyber)) {
       uint256 maxDestinationAmount = uint256(_additionalArgs[0]);
       uint256 minConversionRate = uint256(_additionalArgs[1]);
-      address walletId = address(_additionalArgs[2]);      
+      address walletId = address(_additionalArgs[2]);
 
       receivedAmount = _tradeKyber(
         _source,
@@ -90,7 +90,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
       // unknown exchange type
       revert();
     }
-    
+
     // Check if Ether was received
     if (_destination == ETH_TOKEN_ADDRESS) {
       (msg.sender).transfer(receivedAmount);
@@ -163,7 +163,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
         _walletId
       );
     }
-    
+
     return destinationReceived;
   }
 
@@ -192,13 +192,13 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
   function getValue(address _from, address _to, uint256 _amount) public view returns (uint256) {
     (uint256 expectedRate, ) = kyber.getExpectedRate(ERC20(_from), ERC20(_to), _amount);
     uint256 value = expectedRate * _amount / (10 ** uint256(DetailedERC20(_from).decimals()));
-    
+
     return value;
   }
-  
+
   /**
   * @dev Gets the total value of array of tokens and amounts
-  * 
+  *
   * @param _fromAddresses    Addresses of all the tokens we're converting from
   * @param _amounts          The amounts of all the tokens
   * @param _to               The token who's value we're converting to
@@ -227,5 +227,5 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
 
   // fallback payable function to receive ether from other contract addresses
   function() public payable {}
-  
+
 }
