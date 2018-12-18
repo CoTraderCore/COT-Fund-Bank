@@ -172,11 +172,25 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   }
 
   /**
-  * @dev Fund can get certain tokens from bank for trade operation
+  * @dev Fund can send tokens to any address from BANK
+  * @param _to       reciver address
+  * @param _value    amount of tokens in smallest unit
+  * @param _token    address of token contract
   */
-  function _getTokenFromBank(ERC20 _token, uint256 _value) private{
+  function _sendTokensFromBank(address _to, uint256 _value, ERC20 _token) private{
     require(isBankSet);
-    _token.transferFrom(bank, address(this), _value);
+    Ibank.sendTokens(_to, _value, token);
+  }
+
+  /**
+  * @dev Fund can send ETH to any address from BANK
+  * @param _to       reciver address
+  * @param _value    amount of tokens in smallest unit
+  */
+
+  function _sendEtherFromBank(address _to, uint256 _value) private{
+    require(isBankSet);
+    Ibank.sendETH(_to, _value);
   }
 
 

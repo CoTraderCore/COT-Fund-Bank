@@ -8,6 +8,7 @@
 4) Add ISmartBank to smartFund
 5) Bind SmartBank with SmartFund
 6) Bind SmartFund with SmartBank
+7) Removed approve and transferFrom concept, now fund can send assets directly from Bank
 
 #Next
 1) Change trade destination to BANK

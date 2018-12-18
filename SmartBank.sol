@@ -50,36 +50,15 @@ contract SmartBank is Ownable{
     fund = _fund;
 
     isFundSet = true;
-
-    approveTokensForFund();
   }
 
-  /**
-  * @dev Approve All SmartBank tokens for SmartFund
-  */
 
-  function approveTokensForFund() private onlyIfFundSet{
-
-    uint256 balance;
-
-    for (uint256 i = 1; i < tokenAddresses.length; i++) {
-
-    ERC20 token = ERC20(tokenAddresses[i]);
-
-    // WE don't need approve for ETH token
-    if(token != ETH_TOKEN_ADDRESS)
-
-    balance = token.balanceOf(address(this));
-
-    token.approve(fund, balance);
-   }
-  }
 
   /**
   * @dev Adds a token to tokensTraded if it's not already there
   * @param _token    The token to add
   */
-  function addTokenInBank(address _token) public onlyFund, onlyIfFundSet{
+  function addTokenInBank(address _token) public onlyFund{
 
     // don't add token to if we already have it in our list
     if (tokensTraded[_token] || (_token == address(ETH_TOKEN_ADDRESS)))
@@ -101,26 +80,19 @@ contract SmartBank is Ownable{
 
 
   /**
-  * @dev Fund can recive ETH from BANK via Interface
+  * @dev Fund can send ETH from BANK via Interface
   * @param _value ETH value in wei
   */
-  function sendETHToFund(uint256 _value) public onlyFund, onlyIfFundSet{
-    // TODO add and balance ETH allowance modifiers
-    address(fund).transfer(_value);
-  }
-
-
-  // TODO
-  // Remove allowance
-  // SEND to exchange directly from BANK, just trigger in SEND vie IBank in FUND!
-  // NOT FINISHED
-
-  function sendETH(address _to, uint256 _value) public onlyFund, onlyIfFundSet{
+  function sendETH(address _to, uint256 _value) public onlyFund{
     // TODO add add check balance ETH and  allowance modifiers
-    address(_to).transfer(_value);
+    _to.transfer(_value);
   }
 
-  function sendTokens(address _to, uint256 _value, ERC20 _token) public onlyFund, onlyIfFundSet{
+  /**
+  * @dev Fund can send tokens from BANK via Interface
+  * @param _value ETH value in wei
+  */
+  function sendTokens(address _to, uint256 _value, ERC20 _token) public onlyFund{
     // TODO add and balance and allowance modifiers
     _token.transfer(_to, _value);
   }
