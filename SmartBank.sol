@@ -1,11 +1,24 @@
 pragma solidity ^0.4.24;
 
+/*
+ SmartBank use as a tokens storage for SmartFund
+ All trade operation are performed in SmartFund, but tokens for this operation,
+ SmartFund get from SmartBank.
+
+ Motivation
+ SmartBank help with abstarction, if we do update in App, users do not need,
+ transfer tokens from old smartFund version to new smartFund version.
+ User just set new SmartFund in SmartBank.
+*/
+
 import "./zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 contract SmartBank is Ownable{
+  // fund address and bool state
   address public fund;
   bool public isFundSet = false;
+
   // An array of all the erc20 token addresses the smart fund holds
   address[] public tokenAddresses;
   // ETH Token
@@ -16,6 +29,7 @@ contract SmartBank is Ownable{
   /**
   * @dev onwer can set or change FUND
   */
+
   function setFund(address _fund) public onlyOwner{
     fund = _fund;
 

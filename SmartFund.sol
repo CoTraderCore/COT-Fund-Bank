@@ -1,6 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "./SmartFundInterface.sol";
+import "./ISmartBank.sol";
 
 /*
   The SmartFund contract is what holds all the tokens and ether, and contains all the logic
@@ -25,6 +26,9 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
   // check if bank isSet
   bool public isBankSet = false;
+
+  // bank interface
+  ISmartBank public Ibank;
 
   // The address of the Exchange Portal
   ExchangePortalInterface public exchangePortal;
@@ -161,6 +165,9 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   */
   function setBank(address _bank) public onlyOwner{
     bank = _bank;
+
+    Ibank = ISmartBank(_bank);
+
     isBankSet = true;
   }
 
