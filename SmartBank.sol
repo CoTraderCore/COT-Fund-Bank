@@ -88,8 +88,6 @@ contract SmartBank is Ownable{
   }
 
 
-  // MAIBY WE CAN SEND to exchange directly from BANK, just trigger in FUND?
-
   /**
   * @dev Fund can recive ETH from BANK via Interface
   * @param _value ETH value in wei
@@ -99,6 +97,27 @@ contract SmartBank is Ownable{
     require(isFundSet);
     address(fund).transfer(_value);
   }
+
+
+  // TODO
+  // Remove allowance
+  // SEND to exchange directly from BANK, just trigger in SEND vie IBank in FUND!
+  // NOT FINISHED
+
+  function sendETH(address _to, uint256 _value) public {
+    // TODO add add check balance ETH and  allowance modifiers
+    require(isFundSet);
+    require(msg.sender == fund);
+    address(_to).transfer(_value);
+  }
+
+  function sendTokens(address _to, uint256 _value, ERC20 _token) public {
+    // TODO add and balance and allowance modifiers
+    require(isFundSet);
+    require(msg.sender == fund);
+    _token.transfer(_to, _value);
+  }
+
 
   // Fallback payable function in order to be able to receive ether from other contracts
   function() public payable {}
