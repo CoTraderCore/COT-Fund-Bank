@@ -20,6 +20,12 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   using SafeMath for uint256;
   using SafeERC20 for ERC20;
 
+  // bank address
+  address public bank;
+
+  // check if bank isSet
+  bool public isBankSet = false;
+
   // The address of the Exchange Portal
   ExchangePortalInterface public exchangePortal;
 
@@ -148,6 +154,22 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     KyberAdditionalParams.push(0x0000000000000000000000000000000000000000000000000000000000000000);
 
     emit SmartFundCreated(owner);
+  }
+
+  /**
+  * @dev onwer can set or change BANK
+  */
+  function setBank(address _bank) public onlyOwner{
+    bank = _bank;
+    isBankSet = true;
+  }
+
+  /**
+  * @dev Fund can get certain tokens from bank for trade operation
+  */
+  function _getTokenFromBank(ERC20 _token, uint256 _value) private{
+    require(isBankSet);
+    _token.transferFrom(bank, address(this), _value);
   }
 
 
