@@ -43,6 +43,19 @@ contract SmartBank is Ownable{
   }
 
   /**
+  * @dev constructor
+  *
+  * @param _owner                        Address of the fund manager
+  */
+
+  constructor(address _owner){
+    if (_owner == address(0))
+      owner = msg.sender;
+    else
+      owner = _owner;
+  }
+
+  /**
   * @dev onwer can set or change FUND
   */
 

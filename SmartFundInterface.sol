@@ -27,6 +27,7 @@ contract SmartFundInterface {
     ERC20 _source,
     uint256 _sourceAmount,
     ERC20 _destination,
+    address _destAddress,
     uint256 _type,
     bytes32[] additionalArgs
   )

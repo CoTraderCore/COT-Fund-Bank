@@ -54,6 +54,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
     ERC20 _source,
     uint256 _sourceAmount,
     ERC20 _destination,
+    address _destAddress,
     uint256 _type,
     bytes32[] _additionalArgs
   )
@@ -82,6 +83,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
         _source,
         _sourceAmount,
         _destination,
+        _destAddress,
         maxDestinationAmount,
         minConversionRate,
         walletId
@@ -132,6 +134,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
     ERC20 _source,
     uint256 _sourceAmount,
     ERC20 _destination,
+    address _destAddress,
     uint256 _maxDestinationAmount,
     uint256 _minConversionRate,
     address _walletId
@@ -146,7 +149,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
         _source,
         _sourceAmount,
         _destination,
-        this,
+        _destAddress,
         _maxDestinationAmount,
         _minConversionRate,
         _walletId
@@ -157,7 +160,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
         _source,
         _sourceAmount,
         _destination,
-        this,
+        _destAddress,
         _maxDestinationAmount,
         _minConversionRate,
         _walletId

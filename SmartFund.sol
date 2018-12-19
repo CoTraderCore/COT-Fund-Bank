@@ -249,6 +249,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     ETH_TOKEN_ADDRESS,
     eachTokenPercent,
     token,
+    bank,
     _type, // Echange type Kyber 0
     KyberAdditionalParams
     );
@@ -258,7 +259,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   bank.transfer(address(this).balance);
 
   }else{
-    return;
+  // Send all recived ETH to BANK
+  bank.transfer(address(this).balance);
   }
   }
 
@@ -373,6 +375,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     ERC20 _source,
     uint256 _sourceAmount,
     ERC20 _destination,
+    address _destAddress,
     uint256 _type,
     bytes32[] _additionalArgs
   ) external onlyOwner {
@@ -387,6 +390,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
         _source,
         _sourceAmount,
         _destination,
+        _destAddress,
         _type,
         _additionalArgs
       );
@@ -396,6 +400,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
         _source,
         _sourceAmount,
         _destination,
+        _destAddress,
         _type,
         _additionalArgs
       );
