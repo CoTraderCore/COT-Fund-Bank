@@ -27,4 +27,11 @@
 
 
 #Possible versions bugs
-1) We need add param destAddress in trade function, for change dest from fund to bunk for now this param hardcode to this. So can be some frontend issue.
+1) We need add param destAddress in trade function, for change dest from fund to bank for now this param hardcode to this. So can be some frontend issue.
+
+#Thoughts
+1) trade in bank should be write as abstract param, so fund pass trade as param to bank contract execute trade function, and bank just executes a transaction with bank balance, all logic is written in fund, all logic can be change, bank independent of logic
+
+2) do same abstract things with rebalance to avoid extra transactions
+
+3) maybe if we do full abstract we can remove param destAddress

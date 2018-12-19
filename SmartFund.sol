@@ -102,7 +102,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   // Events
   event Deposit(address indexed user, uint256 amount, uint256 sharesReceived, uint256 totalShares);
   event Withdraw(address indexed user, uint256 sharesRemoved, uint256 totalShares);
-  event Trade(address src, uint256 srcAmount, address dest, uint256 destReceived);
   event SmartFundCreated(address indexed owner);
 
   /**
@@ -379,37 +378,16 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     uint256 _type,
     bytes32[] _additionalArgs
   ) external onlyOwner {
-
-    uint256 receivedAmount;
-
-    if (_source == ETH_TOKEN_ADDRESS) {
-      // Make sure fund contains enough ether
-      require(this.balance >= _sourceAmount);
-      // Call trade on ExchangePortal along with ether
-      receivedAmount = exchangePortal.trade.value(_sourceAmount)(
-        _source,
-        _sourceAmount,
-        _destination,
-        _destAddress,
-        _type,
-        _additionalArgs
-      );
-    } else {
-      _source.approve(exchangePortal, _sourceAmount);
-      receivedAmount = exchangePortal.trade(
-        _source,
-        _sourceAmount,
-        _destination,
-        _destAddress,
-        _type,
-        _additionalArgs
-      );
-    }
-
-    if (receivedAmount > 0)
-      _addToken(_destination);
-
-    emit Trade(_source, _sourceAmount, _destination, receivedAmount);
+    require(isBankSet);
+    Ibank.tradeFromBank(
+    _source,
+    _sourceAmount,
+    _destination,
+    _destAddress,
+    _type,
+    _additionalArgs,
+    exchangePortal
+    );
   }
 
   /**

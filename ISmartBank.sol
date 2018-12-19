@@ -2,7 +2,16 @@ pragma solidity ^0.4.24;
 
 contract ISmartBank {
 
-  function addTokenInBank(address _token) public {
+  function tradeFromBank(
+    ERC20 _source,
+    uint256 _sourceAmount,
+    ERC20 _destination,
+    address _destAddress,
+    uint256 _type,
+    bytes32[] _additionalArgs,
+    ExchangePortalInterface exchangePortal
+  )
+  public {
 
   }
 
