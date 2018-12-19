@@ -9,12 +9,14 @@
 5) Bind SmartBank with SmartFund
 6) Bind SmartFund with SmartBank
 7) Removed approve and transferFrom concept, now fund can send assets directly from Bank
+8) Change trade destination to BANK
+9) Change rebalance destination to BANK (also add change to rebalance send remaining ETH to bank)
 
 #Next
-1) Change trade destination to BANK
-2) Change rebalance destination to BANK (also add change to rebalance send remaining ETH to bank)
-3) Change trade sender from SmartFund to SmartBank
-4) Add windraw assets methods to bank.
+1) Change trade sender from SmartFund to SmartBank or set trade function in bank?
+2) if set trade in bank, set Interface for trade to fund.
+3) Add windraw assets methods to bank.
+
 
 #TODO
 1) Add two factory functions Create Smart Fund for already existing Bank and Create SmartFund With Bank
