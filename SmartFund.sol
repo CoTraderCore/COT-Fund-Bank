@@ -193,7 +193,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   function _rebalance(uint256 _value, uint256 _type) private{
   require(isBankSet);
 
-
   if(Ibank.TokensLength() > 1){
 
   // SEND ALL ETH TO BANK BECAUSE BANK DO TRADE (NoT Tested!!!)
@@ -223,7 +222,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   if(token != ETH_TOKEN_ADDRESS)
 
   // get Token Value in ETH
-  tokenValueINETH = exchangePortal.getValue(token, ETH_TOKEN_ADDRESS, token.balanceOf(this));
+  tokenValueINETH = exchangePortal.getValue(token, ETH_TOKEN_ADDRESS, token.balanceOf(bank));
   // if return value of 0 indicates that an exchange from source to dest
   // is currently not available.
   if(tokenValueINETH > 0)
