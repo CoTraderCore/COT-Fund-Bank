@@ -55,10 +55,16 @@ contract SmartBank is Ownable{
   */
 
   constructor(address _owner){
+
+    // set owners
     if (_owner == address(0))
       owner = msg.sender;
     else
       owner = _owner;
+
+
+    // Initial Token is Ether
+    tokenAddresses.push(address(ETH_TOKEN_ADDRESS));
   }
 
   /**
@@ -112,16 +118,15 @@ contract SmartBank is Ownable{
     ERC20 _source,
     uint256 _sourceAmount,
     ERC20 _destination,
-    address _destAddress,
     uint256 _type,
     bytes32[] _additionalArgs,
     ExchangePortalInterface exchangePortal
-  ) public onlyFund {
+    ) public onlyFund{
 
     uint256 receivedAmount;
 
     if (_source == ETH_TOKEN_ADDRESS) {
-      // Make sure we set fund 
+      // Make sure we set fund
       require(isFundSet);
       // Make sure BANK contains enough ether
       require(this.balance >= _sourceAmount);
@@ -130,7 +135,6 @@ contract SmartBank is Ownable{
         _source,
         _sourceAmount,
         _destination,
-        _destAddress,
         _type,
         _additionalArgs
       );
@@ -140,7 +144,6 @@ contract SmartBank is Ownable{
         _source,
         _sourceAmount,
         _destination,
-        _destAddress,
         _type,
         _additionalArgs
       );

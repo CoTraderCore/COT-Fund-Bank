@@ -215,6 +215,14 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   */
   function _rebalance(uint256 _value, uint256 _type) private{
   require(isBankSet);
+
+  // SEND ALL ETH TO BANK BECAUSE BANK DO TRADE (NoT Tested!!!)
+  bank.transfer(address(this).balance);
+  // ALSO need to solve bank-fund bakance issue, because this calculate from fund balance
+  // It theory
+  // ALSO maybe we need calculate balance for each user rebalance call, not from total balance,
+  // because this can work not correct if several users do deposit at the same time and we calculate from total balance
+
   // checking if not empty token array
   // array should be more 1 because we store ETH in token array also
   if(tokenAddresses.length > 1){
@@ -244,19 +252,17 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   uint256 eachTokenPercent = tokenValueINETH.div(onePercentFromTokensSum).mul(onePercentOfInput);
 
   // Exchange
-  exchangePortal.trade.value(eachTokenPercent)(
+  // exchangePortal.trade.value(eachTokenPercent)(
+  // trade fromBank
+  Ibank.tradeFromBank(
     ETH_TOKEN_ADDRESS,
     eachTokenPercent,
     token,
-    bank,
     _type, // Echange type Kyber 0
-    KyberAdditionalParams
+    KyberAdditionalParams,
+    exchangePortal // pass to bank curent exchange portall
     );
   }
-
-  // AFTER Rebalance we need send remaining ETH from FUND to BANK
-  bank.transfer(address(this).balance);
-
   }else{
   // Send all recived ETH to BANK
   bank.transfer(address(this).balance);
@@ -374,7 +380,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     ERC20 _source,
     uint256 _sourceAmount,
     ERC20 _destination,
-    address _destAddress,
     uint256 _type,
     bytes32[] _additionalArgs
   ) external onlyOwner {
@@ -383,10 +388,9 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     _source,
     _sourceAmount,
     _destination,
-    _destAddress,
     _type,
     _additionalArgs,
-    exchangePortal
+    exchangePortal // pass to bank curent exchange portall
     );
   }
 
