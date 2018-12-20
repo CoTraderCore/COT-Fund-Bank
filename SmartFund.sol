@@ -171,29 +171,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   }
 
   /**
-  * @dev Fund can send tokens to any address from BANK
-  * @param _to       reciver address
-  * @param _value    amount of tokens in smallest unit
-  * @param _token    address of token contract
-  */
-  function _sendTokensFromBank(address _to, uint256 _value, ERC20 _token) private{
-    require(isBankSet);
-    Ibank.sendTokens(_to, _value, _token);
-  }
-
-  /**
-  * @dev Fund can send ETH to any address from BANK
-  * @param _to       reciver address
-  * @param _value    amount of tokens in smallest unit
-  */
-
-  function _sendEtherFromBank(address _to, uint256 _value) private{
-    require(isBankSet);
-    Ibank.sendETH(_to, _value);
-  }
-
-
-  /**
   * @dev Rebalance ETH input value to % balance of each asset in curent fund
   *
   * HOW IT WORK
@@ -216,16 +193,18 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   function _rebalance(uint256 _value, uint256 _type) private{
   require(isBankSet);
 
+
+  if(Ibank.TokensLength() > 1){
+
   // SEND ALL ETH TO BANK BECAUSE BANK DO TRADE (NoT Tested!!!)
   bank.transfer(address(this).balance);
-  // ALSO need to solve bank-fund bakance issue, because this calculate from fund balance
-  // It theory
-  // ALSO maybe we need calculate balance for each user rebalance call, not from total balance,
-  // because this can work not correct if several users do deposit at the same time and we calculate from total balance
+    // ALSO need to solve bank-fund bakance issue, because this calculate from fund balance but nedd from bank balance
+    // It theory
+    // ALSO maybe we need calculate balance for each user rebalance call, not from total balance,
+    // because this can work not correct if several users do deposit at the same time and we calculate from total balance
 
-  // checking if not empty token array
-  // array should be more 1 because we store ETH in token array also
-  if(tokenAddresses.length > 1){
+    // checking if not empty token array
+    // array should be more 1 because we store ETH in token array also
 
   uint256 tokenValueINETH;
 
@@ -422,24 +401,28 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   }
 
   /**
-  * @dev Calculates the funds value in deposit token (Ether)
+  * @dev Calculates the FUND value in BANK in deposit token (Ether)
   *
-  * @return The current total fund value
+  * @return The current total ETH + All tokens in ETH rate
   */
   function calculateFundValue() public view returns (uint256) {
-    uint256 ethBalance = this.balance;
+    require(isBankSet);
 
-    // If the fund only contains ether, return the funds ether balance
-    if (tokenAddresses.length == 1)
+    uint256 ethBalance = bank.balance;
+
+    // If the BANK only contains ether, return the funds ether balance
+    if (Ibank.TokensLength() == 1)
       return ethBalance;
 
     // Otherwise, we get the value of all the other tokens in ether via exchangePortal
-    address[] memory fromAddresses = new address[](tokenAddresses.length - 1);
-    uint256[] memory amounts = new uint256[](tokenAddresses.length - 1);
+    address[] memory TokensInBANK = Ibank.getAllTokenAddresses();
+    address[] memory fromAddresses = new address[](TokensInBANK.length - 1);
+    uint256[] memory amounts = new uint256[](TokensInBANK.length - 1);
 
-    for (uint256 i = 1; i < tokenAddresses.length; i++) {
-      fromAddresses[i-1] = tokenAddresses[i];
-      amounts[i-1] = ERC20(tokenAddresses[i]).balanceOf(this);
+
+    for (uint i = 1; i < TokensInBANK.length; i++) {
+      fromAddresses[i-1] = TokensInBANK[i];
+      amounts[i-1] = ERC20(TokensInBANK[i]).balanceOf(bank);
     }
 
     // Ask the Exchange Portal for the value of all the funds tokens in eth
@@ -454,8 +437,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
   function getTokenValue(ERC20 _token) public view returns (uint256) {
     if (_token == ETH_TOKEN_ADDRESS)
-      return this.balance;
-    uint256 tokenBalance = _token.balanceOf(this);
+      return bank.balance;
+    uint256 tokenBalance = _token.balanceOf(bank);
 
     return exchangePortal.getValue(_token, ETH_TOKEN_ADDRESS, tokenBalance);
   }
@@ -592,8 +575,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   // This method was added to easily record the funds token balances, may (should?) be removed in the future
   function getFundTokenHolding(ERC20 _token) external view returns (uint256) {
     if (_token == ETH_TOKEN_ADDRESS)
-      return this.balance;
-    return _token.balanceOf(this);
+      return bank.balance;
+    return _token.balanceOf(bank);
   }
 
   /**
@@ -643,6 +626,33 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
       ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(this));
     }
   }
+
+  /**
+  * @dev Fund can send tokens to any address from BANK
+  * @param _to       reciver address
+  * @param _value    amount of tokens in smallest unit
+  * @param _token    address of token contract
+  */
+
+
+  function _sendTokensFromBank(address _to, uint256 _value, ERC20 _token) private{
+    require(isBankSet);
+    Ibank.sendTokens(_to, _value, _token);
+  }
+
+
+  /**
+  * @dev Fund can send ETH to any address from BANK
+  * @param _to       reciver address
+  * @param _value    amount of tokens in smallest unit
+  */
+
+
+  function _sendEtherFromBank(address _to, uint256 _value) private{
+    require(isBankSet);
+    Ibank.sendETH(_to, _value);
+  }
+
 
   // Fallback payable function in order to be able to receive ether from other contracts
   function() public payable {}

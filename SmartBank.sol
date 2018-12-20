@@ -171,6 +171,27 @@ contract SmartBank is Ownable{
     require(tokenCount <= MAX_TOKENS);
   }
 
+  /**
+  * @dev view all tokens address in Bank
+  */
+  function getAllTokenAddresses() public view returns (address[]) {
+    return tokenAddresses;
+  }
+
+  /**
+  * @dev view bank tokens length
+  */
+  function TokensLength() public view returns (uint) {
+    return tokenAddresses.length;
+  }
+
+  /**
+  * @dev view address of bank token by index
+  */
+  function TokensAddressByIndex(uint _index) public view returns (address){
+    return tokenAddresses[_index];
+  }
+
 
   // Fallback payable function in order to be able to receive ether from other contracts
   function() public payable {}

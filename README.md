@@ -13,7 +13,6 @@
 9) Now fund can trade through bank pass exchange in param, trade function in bank more abstract.
 
 #Next
-0) Fix issue addToken to list.
 1) Change balance calculation from fund to bank.
 2) Add windraw assets methods to bank.
 3) Test rebalance with new tradeFromBank

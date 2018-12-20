@@ -22,4 +22,16 @@ contract ISmartBank {
 
   }
 
+  function TokensLength() public view returns (uint) {
+
+  }
+
+  function TokensAddressByIndex(uint _index) public view returns (address){
+
+  }
+
+  function getAllTokenAddresses() public view returns (address[]) {
+
+  }
+
 }

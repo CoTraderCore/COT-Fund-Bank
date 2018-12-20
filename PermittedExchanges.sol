@@ -21,7 +21,7 @@ contract PermittedExchanges is PermittedExchangesInterface, Ownable {
   event NewWaitTimeSet(uint256 newWaitTime);
 
   // The amount of waiting time for a new Exchange Portal to be permitted
-  uint256 public newExchangeWaitTime = 5 minutes;
+  uint256 public newExchangeWaitTime = 3 days;
 
   // New waiting time for new exchange portal to be permitted
   uint256 public newWaitTime;
