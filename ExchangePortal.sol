@@ -116,6 +116,50 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
     return receivedAmount;
   }
 
+
+  /**
+  * @dev  allow Exchange ETH to token for any Destination address not only msg.sender
+  *
+  * @notice helper for _rebalance function, when we do rebalance from fund to bank
+  *
+  * @param _source            ERC20 token to convert from
+  * @param _sourceAmount      Amount to convert from (in _source token)
+  * @param _destination       ERC20 token to convert to
+  * @param _destAddress       exchanged token reciver address
+  * @param _additionalArgs    Array of bytes32 additional arguments
+  *
+  */
+  function tradeForDest(
+    ERC20 _source,
+    uint256 _sourceAmount,
+    ERC20 _destination,
+    address _destAddress,
+    bytes32[] _additionalArgs
+  )
+    external
+    payable
+    returns (uint256)
+  {
+
+   require(_source != _destination);
+   require(_source == ETH_TOKEN_ADDRESS);
+   require(msg.value == _sourceAmount);
+
+   uint256 maxDestinationAmount = uint256(_additionalArgs[0]);
+   uint256 minConversionRate = uint256(_additionalArgs[1]);
+   address walletId = address(_additionalArgs[2]);
+
+   kyber.trade.value(_sourceAmount)(
+    _source,
+    _sourceAmount,
+    _destination,
+    _destAddress,
+    maxDestinationAmount,
+    minConversionRate,
+    walletId
+   );
+  }
+
   /**
   * @dev Facilitates a trade between this contract and KyberExchange
   *

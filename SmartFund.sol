@@ -195,28 +195,26 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
   if(Ibank.TokensLength() > 1){
 
-  // SEND ALL ETH TO BANK BECAUSE BANK DO TRADE (NoT Tested!!!)
-  bank.transfer(address(this).balance);
-    // ALSO need to solve bank-fund bakance issue, because this calculate from fund balance but nedd from bank balance
-    // It theory
-    // ALSO maybe we need calculate balance for each user rebalance call, not from total balance,
-    // because this can work not correct if several users do deposit at the same time and we calculate from total balance
-
-    // checking if not empty token array
-    // array should be more 1 because we store ETH in token array also
+  // checking if not empty token array
+  // array should be more 1 because we store ETH in token array also
 
   uint256 tokenValueINETH;
 
   uint256 TokensSumInETH = calculateFundValue();
-  // sub new _value from Fund Value and get 1% of tokens sum
-  uint256 onePercentFromTokensSum = TokensSumInETH.sub(_value).div(100);
+  // get 1% of tokens sum
+  // now we do not need sub new value from balance to do right calculation
+  // uint256 onePercentFromTokensSum = TokensSumInETH.sub(_value).div(100);
+  uint256 onePercentFromTokensSum = TokensSumInETH.div(100);
   // get 1% of input _value
   uint256 onePercentOfInput = _value.div(100);
 
+  // get tokensArray from BANK
+  address[] memory tokensInBank = Ibank.getAllTokenAddresses();
 
-  for (uint256 i = 1; i < tokenAddresses.length; i++) {
 
-  ERC20 token = ERC20(tokenAddresses[i]);
+  for (uint256 i = 1; i < tokensInBank.length; i++) {
+
+  ERC20 token = ERC20(tokensInBank[i]);
 
   // WE don't need rebalance for ETH token
   if(token != ETH_TOKEN_ADDRESS)
@@ -229,19 +227,20 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
   uint256 eachTokenPercent = tokenValueINETH.div(onePercentFromTokensSum).mul(onePercentOfInput);
 
-  // Exchange
-  // exchangePortal.trade.value(eachTokenPercent)(
-  // trade fromBank
-  Ibank.tradeFromBank(
-    ETH_TOKEN_ADDRESS,
-    eachTokenPercent,
-    token,
-    _type, // Echange type Kyber 0
-    KyberAdditionalParams,
-    exchangePortal // pass to bank curent exchange portall
-    );
+  // Trade for dest allow exchange ETH to token and send to any address, not for msg.sender
+  exchangePortal.tradeForDest.value(eachTokenPercent)(
+    ETH_TOKEN_ADDRESS, // ERC20 _source,
+    eachTokenPercent, // uint256 _sourceAmount,
+    token,           // ERC20 _destination,
+    bank,            // address _destAddress,
+    KyberAdditionalParams //bytes32[] _additionalArgs
+  );
   }
-  }else{
+
+  // Send all remains ETH after rebalance to BANK
+  bank.transfer(address(this).balance);
+  }
+  else{
   // Send all recived ETH to BANK
   bank.transfer(address(this).balance);
   }

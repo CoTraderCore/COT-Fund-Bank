@@ -17,6 +17,19 @@ contract ExchangePortalInterface {
     payable
     returns (uint256);
 
+
+  function tradeForDest(
+    ERC20 _source,
+    uint256 _sourceAmount,
+    ERC20 _destination,
+    address _destAddress,
+    bytes32[] _additionalArgs
+  )
+    external
+    payable
+    returns (uint256);
+
+
   function getValue(address _from, address _to, uint256 _amount) public view returns (uint256);
   function getTotalValue(address[] _fromAddresses, uint256[] _amounts, address _to) public view returns (uint256);
 }
