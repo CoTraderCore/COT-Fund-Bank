@@ -285,6 +285,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     return shares;
   }
 
+  // NOT TESTED!!!
   /**
   * @dev Sends (_mul/_div) of every token (and ether) the funds holds to _withdrawAddress
   *
@@ -293,17 +294,25 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   * @param _withdrawAddress    Address to send the tokens/ether to
   */
   function _withdraw(uint256 _mul, uint256 _div, address _withdrawAddress) private returns (uint256) {
-    for (uint256 i = 1; i < tokenAddresses.length; i++) {
+    require(isBankSet);
+
+    address[] memory TokensInBANK = Ibank.getAllTokenAddresses();
+
+    for (uint256 i = 1; i < TokensInBANK.length; i++) {
       // Transfer that _mul/_div of each token we hold to the user
-      ERC20 token = ERC20(tokenAddresses[i]);
-      uint256 fundAmount = token.balanceOf(this);
+      ERC20 token = ERC20(TokensInBANK[i]);
+      uint256 fundAmount = token.balanceOf(bank);
       uint256 payoutAmount = fundAmount.mul(_mul).div(_div);
 
-      token.transfer(_withdrawAddress, payoutAmount);
+    //  token.transfer(_withdrawAddress, payoutAmount);
+    //  windraw tokens FROM BANK
+    Ibank.sendTokens(_withdrawAddress, payoutAmount, token);
     }
     // Transfer ether to _withdrawAddress
-    uint256 etherPayoutAmount = (this.balance).mul(_mul).div(_div);
-    _withdrawAddress.transfer(etherPayoutAmount);
+    uint256 etherPayoutAmount = (bank.balance).mul(_mul).div(_div);
+    // _withdrawAddress.transfer(etherPayoutAmount);
+    // windraw ETH from BANK
+    Ibank.sendETH(_withdrawAddress, etherPayoutAmount);
   }
 
   /**
@@ -429,8 +438,12 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     return ethBalance + tokensValue;
   }
 
+  // NOT TESTED!!!
+  /**
+  * @dev get al token address in fund
+  */
   function getAllTokenAddresses() public view returns (address[]) {
-    return tokenAddresses;
+    return Ibank.getAllTokenAddresses();
   }
 
   function getTokenValue(ERC20 _token) public view returns (uint256) {
@@ -441,11 +454,12 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     return exchangePortal.getValue(_token, ETH_TOKEN_ADDRESS, tokenBalance);
   }
 
+
   /**
   * @dev Adds a token to tokensTraded if it's not already there
   * @param _token    The token to add
   */
-  function _addToken(address _token) private {
+  /* function _addToken(address _token) private {
     // don't add token to if we already have it in our list
     if (tokensTraded[_token] || (_token == address(ETH_TOKEN_ADDRESS)))
       return;
@@ -455,8 +469,10 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
     // we can't hold more than MAX_TOKENS tokens
     require(tokenCount <= MAX_TOKENS);
-  }
+  } */
 
+
+  //THIS NOT TESTED!!!
   /**
   * @dev Removes a token from tokensTraded
   *
@@ -465,17 +481,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   *
   */
   function removeToken(address _token, uint256 _tokenIndex) public onlyOwner {
-    require(tokensTraded[_token]);
-    require(ERC20(_token).balanceOf(this) == 0);
-    require(tokenAddresses[_tokenIndex] == _token);
-
-    tokensTraded[_token] = false;
-
-    // remove token from array
-    uint256 arrayLength = tokenAddresses.length - 1;
-    tokenAddresses[_tokenIndex] = tokenAddresses[arrayLength];
-    delete tokenAddresses[arrayLength];
-    tokenAddresses.length--;
+    Ibank.removeToken(_token, _tokenIndex);
   }
 
 
@@ -623,32 +629,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     } else {
       ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(this));
     }
-  }
-
-  /**
-  * @dev Fund can send tokens to any address from BANK
-  * @param _to       reciver address
-  * @param _value    amount of tokens in smallest unit
-  * @param _token    address of token contract
-  */
-
-
-  function _sendTokensFromBank(address _to, uint256 _value, ERC20 _token) private{
-    require(isBankSet);
-    Ibank.sendTokens(_to, _value, _token);
-  }
-
-
-  /**
-  * @dev Fund can send ETH to any address from BANK
-  * @param _to       reciver address
-  * @param _value    amount of tokens in smallest unit
-  */
-
-
-  function _sendEtherFromBank(address _to, uint256 _value) private{
-    require(isBankSet);
-    Ibank.sendETH(_to, _value);
   }
 
 

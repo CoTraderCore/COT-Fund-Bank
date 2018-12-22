@@ -86,25 +86,6 @@ contract SmartBank is Ownable{
     return _token.balanceOf(this);
   }
 
-
-  /**
-  * @dev Fund can send ETH from BANK via Interface
-  * @param _value ETH value in wei
-  */
-  function sendETH(address _to, uint256 _value) public onlyFund{
-    // TODO add add check balance ETH and  allowance modifiers
-    _to.transfer(_value);
-  }
-
-  /**
-  * @dev Fund can send tokens from BANK via Interface
-  * @param _value ETH value in wei
-  */
-  function sendTokens(address _to, uint256 _value, ERC20 _token) public onlyFund{
-    // TODO add and balance and allowance modifiers
-    _token.transfer(_to, _value);
-  }
-
   /**
   * @dev Facilitates a trade of the funds holdings via the exchange portal
   *
@@ -113,6 +94,7 @@ contract SmartBank is Ownable{
   * @param _destination       ERC20 token to convert to
   * @param _type              The type of exchange to trade with
   * @param _additionalArgs    Array of bytes32 additional arguments
+  * @param exchangePortal     exchange Portal
   */
   function tradeFromBank(
     ERC20 _source,
@@ -172,6 +154,27 @@ contract SmartBank is Ownable{
   }
 
   /**
+  * @dev Fund can remove token from tokensTraded in bank
+  *
+  * @param _token         The address of the token to be removed
+  * @param _tokenIndex    The index of the token to be removed
+  *
+  */
+  function removeToken(address _token, uint256 _tokenIndex) public onlyFund {
+    require(tokensTraded[_token]);
+    require(ERC20(_token).balanceOf(this) == 0);
+    require(tokenAddresses[_tokenIndex] == _token);
+
+    tokensTraded[_token] = false;
+
+    // remove token from array
+    uint256 arrayLength = tokenAddresses.length - 1;
+    tokenAddresses[_tokenIndex] = tokenAddresses[arrayLength];
+    delete tokenAddresses[arrayLength];
+    tokenAddresses.length--;
+  }
+
+  /**
   * @dev view all tokens address in Bank
   */
   function getAllTokenAddresses() public view returns (address[]) {
@@ -192,6 +195,23 @@ contract SmartBank is Ownable{
     return tokenAddresses[_index];
   }
 
+  /**
+  * @dev Fund can send ETH from BANK via Interface
+  * @param _value ETH value in wei
+  */
+  function sendETH(address _to, uint256 _value) public onlyFund{
+    // TODO add add check balance ETH and  allowance modifiers
+    _to.transfer(_value);
+  }
+
+  /**
+  * @dev Fund can send tokens from BANK via Interface
+  * @param _value ETH value in wei
+  */
+  function sendTokens(address _to, uint256 _value, ERC20 _token) public onlyFund{
+    // TODO add and balance and allowance modifiers
+    _token.transfer(_to, _value);
+  }
 
   // Fallback payable function in order to be able to receive ether from other contracts
   function() public payable {}

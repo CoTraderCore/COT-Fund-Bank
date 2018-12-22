@@ -11,7 +11,7 @@
 7) Removed approve and transferFrom concept, now fund can send assets directly from Bank
 8) Remove back param destAddress/fix bugs
 9) Now fund can trade through bank pass exchange in param, trade function in bank more abstract.
-10) Fixed Rebalance for bank
+10) Fixed Rebalance for Bank
 
 #Next
 1) Add windraw assets methods to bank.
