@@ -57,9 +57,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   // Denomination of initial shares
   uint256 constant private INITIAL_SHARES = 10 ** 18;
 
-  // Total amount of ether deposited by all users
-  uint256 public totalEtherDeposited = 0;
-
   // Total amount of ether withdrawn by all users
   uint256 public totalEtherWithdrawn = 0;
 
@@ -73,9 +70,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
   // The earnings the fund manager has already cashed out
   uint256 public fundManagerCashedOut = 0;
-
-  // An array of all the erc20 token addresses the smart fund holds
-  address[] public tokenAddresses;
 
   // Standart Kyber Parametrs
   bytes32[] KyberAdditionalParams;
@@ -142,8 +136,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     else
       platformAddress = _platformAddress;
 
-    // Initial Token is Ether
-    tokenAddresses.push(address(ETH_TOKEN_ADDRESS));
 
     exchangePortal = ExchangePortalInterface(_exchangePortalAddress);
     permittedExchanges = PermittedExchangesInterface(_permittedExchangesAddress);
@@ -270,6 +262,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   * @return The amount of shares allocated to the depositor
   */
   function deposit() external payable returns (uint256) {
+    require(isBankSet);
     // Check if the sender is allowed to deposit into the fund
     if (onlyWhitelist)
       require(whitelist[msg.sender]);
@@ -277,7 +270,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     // Require that the amount sent is not 0
     require(msg.value != 0);
 
-    totalEtherDeposited += msg.value;
+    // totalEtherDeposited += msg.value;
+    Ibank.increaseTotalEtherDeposited(msg.value);
 
     // Call rebalance
     _rebalance(msg.value, 0);
@@ -513,7 +507,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     _owner = owner;
     _name = name;
     _totalShares = totalShares;
-    _tokenAddresses = tokenAddresses;
+    _tokenAddresses = Ibank.getAllTokenAddresses();
     _successFee = successFee;
   }
 
@@ -534,6 +528,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     // withdrawn by investors as well as ether withdrawn by the fund manager
     // NOTE: value can be negative if the manager performs well and investors withdraw more
     // ether than they deposited
+    uint256 totalEtherDeposited = Ibank.getTotalEtherDeposited();
     int256 curTotalEtherDeposited = int256(totalEtherDeposited) - int256(totalEtherWithdrawn.add(fundManagerCashedOut));
 
     // If profit < 0, the fund managers totalCut and remainingCut are 0
@@ -588,7 +583,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   */
   function calculateFundProfit() public view returns (int256) {
     uint256 fundValue = calculateFundValue();
-
+    uint256 totalEtherDeposited = Ibank.getTotalEtherDeposited();
     return int256(fundValue) + int256(totalEtherWithdrawn) - int256(totalEtherDeposited);
   }
 

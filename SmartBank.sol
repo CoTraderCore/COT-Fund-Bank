@@ -27,6 +27,9 @@ contract SmartBank is Ownable{
   // so that we can easily check that we don't add duplicates to our array
   mapping (address => bool) public tokensTraded;
 
+  // Total amount of ether deposited by all users
+  uint256 public totalEtherDeposited = 0;
+
   // The maximum amount of tokens that can be traded via the smart fund
   uint256 public MAX_TOKENS = 50;
 
@@ -175,6 +178,20 @@ contract SmartBank is Ownable{
     tokenAddresses[_tokenIndex] = tokenAddresses[arrayLength];
     delete tokenAddresses[arrayLength];
     tokenAddresses.length--;
+  }
+
+  /**
+  * @dev Fund can increase totalEtherDeposited var in Bank after deposit
+  */
+  function increaseTotalEtherDeposited(uint256 _value) public onlyFund {
+    totalEtherDeposited += _value;
+  }
+
+  /**
+  * @dev view totalEtherDeposited var in Bank
+  */
+  function getTotalEtherDeposited() public view returns (uint256) {
+    return totalEtherDeposited;
   }
 
   /**

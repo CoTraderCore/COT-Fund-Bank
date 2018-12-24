@@ -41,4 +41,12 @@ contract ISmartBank {
 
   }
 
+  function getTotalEtherDeposited() public view returns (uint256) {
+
+  }
+
+  function increaseTotalEtherDeposited(uint256 _value) public {
+
+  }
+
 }
