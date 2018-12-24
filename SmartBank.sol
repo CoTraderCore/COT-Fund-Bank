@@ -54,7 +54,7 @@ contract SmartBank is Ownable{
   * @param _owner                        Address of the fund manager
   */
 
-  constructor(address _owner){
+  constructor(address _owner, address _fund){
 
     // set owners
     if (_owner == address(0))
@@ -62,16 +62,19 @@ contract SmartBank is Ownable{
     else
       owner = _owner;
 
+    // initialize fund
+    fund = _fund;
+    isFundSet = true;
 
     // Initial Token is Ether
     tokenAddresses.push(address(ETH_TOKEN_ADDRESS));
   }
 
   /**
-  * @dev onwer can set or change FUND
+  * @dev onwer can change FUND
   */
 
-  function setFund(address _fund) public onlyOwner{
+  function changeFund(address _fund) public onlyOwner{
     fund = _fund;
 
     isFundSet = true;

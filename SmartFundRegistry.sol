@@ -69,9 +69,12 @@ contract SmartFundRegistry is Ownable {
 
     smartFunds.push(smartFund);
 
-    // Create smart bank
-    SmartBank smartBank = new SmartBank(owner);
+    // Create smart bank and bind bank with fund
+    SmartBank smartBank = new SmartBank(owner, address(smartFund));
     smartBanks.push(smartBank);
+
+    // bind fund with bank
+    smartFund.BankInitializer(address(smartBank));
 
     emit SmartFundAdded(address(smartFund), owner);
   }

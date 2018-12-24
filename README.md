@@ -12,6 +12,7 @@
 8) Remove back param destAddress/fix bugs
 9) Now fund can trade through bank pass exchange in param, trade function in bank more abstract.
 10) Fixed Rebalance for Bank
+11) Create bind bank with fund and fund with bank without functions, just in Factory.
 
 #Next
 1) Add windraw assets methods to bank.
@@ -24,8 +25,7 @@
 1) Add two factory functions Create Smart Fund for already existing Bank and Create SmartFund With Bank
 2) ADD EVENTs like fund set in bank, fund change in bank ect.
 3) ADD additional modifiers
-4) Create bind bank with fund without functions, just in Factory!!!
-5) Refactoring
+4) Refactoring
 
 #NOTE
 1) Enable Solc Optimization for SmartFundRegistry

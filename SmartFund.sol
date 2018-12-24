@@ -160,9 +160,25 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   }
 
   /**
-  * @dev onwer can set or change BANK
+  * @dev owner can change BANK
   */
-  function setBank(address _bank) public onlyOwner{
+  function changeBank(address _bank) public onlyOwner{
+    bank = _bank;
+
+    Ibank = ISmartBank(_bank);
+
+    isBankSet = true;
+  }
+
+
+  /**
+  * @dev contract SmartFundRegistry can set BANK in FUND during initialization
+  */
+  function BankInitializer(address _bank) public {
+    require(!isBankSet);
+
+    require(msg.sender == platformAddress);
+
     bank = _bank;
 
     Ibank = ISmartBank(_bank);
