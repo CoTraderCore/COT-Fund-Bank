@@ -13,9 +13,13 @@ pragma solidity ^0.4.24;
 
 import "./zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "./zeppelin-solidity/contracts/math/SafeMath.sol";
 import "./ExchangePortalInterface.sol";
 
 contract SmartBank is Ownable{
+
+  using SafeMath for uint256;
+
   // fund address and bool state
   address public fund;
   bool public isFundSet = false;
@@ -33,21 +37,21 @@ contract SmartBank is Ownable{
   // The maximum amount of tokens that can be traded via the smart fund
   uint256 public MAX_TOKENS = 50;
 
-  event Trade(address src, uint256 srcAmount, address dest, uint256 destReceived);
+  // the total number of shares in the BANK
+  uint256 public totalShares = 0;
+
+  // this is really only being used to more easily show profits, but may not be necessary
+  // if we do a lot of this offchain using events to track everything
+  // total `depositToken` deposited - total `depositToken` withdrawn
+  mapping (address => int256) public addressesNetDeposit;
+
+
 
   /**
    * @dev Throws if called by any other address
    */
   modifier onlyFund() {
     require(msg.sender == fund);
-    _;
-  }
-
-  /**
-   * @dev Throws if fund not set
-   */
-  modifier onlyIfFundSet() {
-    require(isFundSet);
     _;
   }
 
@@ -109,7 +113,10 @@ contract SmartBank is Ownable{
     uint256 _type,
     bytes32[] _additionalArgs,
     ExchangePortalInterface exchangePortal
-    ) public onlyFund{
+    ) public
+    onlyFund
+    returns(uint256)
+    {
 
     uint256 receivedAmount;
 
@@ -140,7 +147,7 @@ contract SmartBank is Ownable{
     if (receivedAmount > 0)
       _addToken(_destination);
 
-    emit Trade(_source, _sourceAmount, _destination, receivedAmount);
+    return receivedAmount;
   }
 
   /**
@@ -181,10 +188,41 @@ contract SmartBank is Ownable{
   }
 
   /**
-  * @dev Fund can increase totalEtherDeposited var in Bank after deposit
+  * @dev view totalShares var in Bank
   */
-  function increaseTotalEtherDeposited(uint256 _value) public onlyFund {
-    totalEtherDeposited += _value;
+  function getTotalShares() public view returns (uint256) {
+    return totalShares;
+  }
+
+  /**
+  * @dev Fund can increase totalShares var in Bank after deposit
+  *
+  * @return new value of totalShares after increase
+  */
+  function increaseTotalShares(uint256 _value) public onlyFund returns(uint256) {
+    totalShares = totalShares.add(_value);
+    return totalShares;
+  }
+
+  /**
+  * @dev Fund can decrease totalShares var in Bank after deposit
+  *
+  * @return new value of totalShares after decrease
+  */
+  function decreaseTotalShares(uint256 _value) public onlyFund returns(uint256) {
+    totalShares = totalShares.sub(_value);
+    return totalShares;
+  }
+
+
+  /**
+  * @dev Fund can increase totalEtherDeposited var in Bank after deposit
+  *
+  * @return new value of totalEtherDeposited after increase
+  */
+  function increaseTotalEtherDeposited(uint256 _value) public onlyFund returns(uint256) {
+    totalEtherDeposited = totalEtherDeposited.add(_value);
+    return totalEtherDeposited;
   }
 
   /**
@@ -231,6 +269,21 @@ contract SmartBank is Ownable{
   function sendTokens(address _to, uint256 _value, ERC20 _token) public onlyFund{
     // TODO add and balance and allowance modifiers
     _token.transfer(_to, _value);
+  }
+
+  /**
+  * @dev This method is present in the alpha testing phase in case for some reason there are funds
+  * left in the SmartFund after all shares were withdrawn
+  *
+  * @param _token    The address of the token to withdraw
+  */
+  function emergencyWithdraw(address _token) external onlyOwner {
+    require(totalShares == 0);
+    if (_token == address(ETH_TOKEN_ADDRESS)) {
+      msg.sender.transfer(this.balance);
+    } else {
+      ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(this));
+    }
   }
 
   // Fallback payable function in order to be able to receive ether from other contracts

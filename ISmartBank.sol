@@ -12,41 +12,31 @@ contract ISmartBank {
     uint256 _type,
     bytes32[] _additionalArgs,
     ExchangePortalInterface exchangePortal
-  )
-  public {
+    )
+    public
+    returns(uint256);
 
-  }
 
-  function TokensLength() public view returns (uint) {
+  function TokensLength() public view returns (uint);
 
-  }
+  function TokensAddressByIndex(uint _index) public view returns (address);
 
-  function TokensAddressByIndex(uint _index) public view returns (address){
+  function getAllTokenAddresses() public view returns (address[]);
 
-  }
+  function removeToken(address _token, uint256 _tokenIndex) public;
 
-  function getAllTokenAddresses() public view returns (address[]) {
+  function sendETH(address _to, uint256 _value) public;
 
-  }
+  function sendTokens(address _to, uint256 _value, ERC20 _token) public;
 
-  function removeToken(address _token, uint256 _tokenIndex) public{
+  function getTotalEtherDeposited() public view returns (uint256);
 
-  }
+  function increaseTotalEtherDeposited(uint256 _value) public;
 
-  function sendETH(address _to, uint256 _value) public {
+  function getTotalShares() public view returns (uint256);
 
-  }
+  function increaseTotalShares(uint256 _value) public;
 
-  function sendTokens(address _to, uint256 _value, ERC20 _token) public {
-
-  }
-
-  function getTotalEtherDeposited() public view returns (uint256) {
-
-  }
-
-  function increaseTotalEtherDeposited(uint256 _value) public {
-
-  }
+  function decreaseTotalShares(uint256 _value) public returns(uint256);
 
 }

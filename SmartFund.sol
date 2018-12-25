@@ -39,17 +39,11 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   // For ERC20 compliance
   string public name;
 
-  // The maximum amount of tokens that can be traded via the smart fund
-  uint256 public MAX_TOKENS = 50;
-
   // Percentages are rounded to 3 decimal places
   uint256 public TOTAL_PERCENTAGE = 10000;
 
   // Address of the platform that takes a cut from the fund manager success cut
   address public platformAddress;
-
-  // the total number of shares in the fund
-  uint256 public totalShares = 0;
 
   // KyberExchange recognizes ETH by this address
   ERC20 constant private ETH_TOKEN_ADDRESS = ERC20(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
@@ -85,9 +79,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   // how many shares belong to each address
   mapping (address => uint256) public addressToShares;
 
-  // so that we can easily check that we don't add duplicates to our array
-  mapping (address => bool) public tokensTraded;
-
   // this is really only being used to more easily show profits, but may not be necessary
   // if we do a lot of this offchain using events to track everything
   // total `depositToken` deposited - total `depositToken` withdrawn
@@ -96,6 +87,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   // Events
   event Deposit(address indexed user, uint256 amount, uint256 sharesReceived, uint256 totalShares);
   event Withdraw(address indexed user, uint256 sharesRemoved, uint256 totalShares);
+  event Trade(address src, uint256 srcAmount, address dest, uint256 destReceived);
   event SmartFundCreated(address indexed owner);
 
   /**
@@ -283,7 +275,10 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     require(shares != 0);
 
     // Add shares to total
-    totalShares = totalShares.add(shares);
+    // totalShares = totalShares.add(shares);
+    Ibank.increaseTotalShares(shares);
+
+    uint256 totalShares = Ibank.getTotalShares();
 
     // Add shares to address
     addressToShares[msg.sender] = addressToShares[msg.sender].add(shares);
@@ -332,6 +327,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   * @param _percentageWithdraw    The percentage of the users shares to withdraw.
   */
   function withdraw(uint256 _percentageWithdraw) external {
+    uint256 totalShares = Ibank.getTotalShares();
+
     require(totalShares != 0);
 
     uint256 percentageWithdraw = (_percentageWithdraw == 0) ? TOTAL_PERCENTAGE : _percentageWithdraw;
@@ -357,7 +354,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     addressesNetDeposit[msg.sender] -= int256(valueWithdrawn);
 
     // Subtract from total shares the number of withdrawn shares
-    totalShares = totalShares.sub(numberOfWithdrawShares);
+    totalShares = Ibank.decreaseTotalShares(numberOfWithdrawShares);
     addressToShares[msg.sender] = addressToShares[msg.sender].sub(numberOfWithdrawShares);
 
     emit Withdraw(msg.sender, numberOfWithdrawShares, totalShares);
@@ -380,7 +377,10 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     bytes32[] _additionalArgs
   ) external onlyOwner {
     require(isBankSet);
-    Ibank.tradeFromBank(
+
+    uint256 receivedAmount;
+
+    receivedAmount = Ibank.tradeFromBank(
     _source,
     _sourceAmount,
     _destination,
@@ -388,6 +388,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     _additionalArgs,
     exchangePortal // pass to bank curent exchange portall
     );
+
+    emit Trade(_source, _sourceAmount, _destination, receivedAmount);
   }
 
   /**
@@ -400,6 +402,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   function calculateDepositToShares(uint256 _amount) public view returns (uint256) {
     uint256 fundManagerCut;
     uint256 fundValue;
+    uint256 totalShares = Ibank.getTotalShares();
 
     // If there are no shares in the contract, whoever deposits owns 100% of the fund
     // we will set this to 10^18 shares, but this could be any amount
@@ -465,23 +468,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   }
 
 
-  /**
-  * @dev Adds a token to tokensTraded if it's not already there
-  * @param _token    The token to add
-  */
-  /* function _addToken(address _token) private {
-    // don't add token to if we already have it in our list
-    if (tokensTraded[_token] || (_token == address(ETH_TOKEN_ADDRESS)))
-      return;
-
-    tokensTraded[_token] = true;
-    uint256 tokenCount = tokenAddresses.push(_token);
-
-    // we can't hold more than MAX_TOKENS tokens
-    require(tokenCount <= MAX_TOKENS);
-  } */
-
-
   //THIS NOT TESTED!!!
   /**
   * @dev Removes a token from tokensTraded
@@ -506,7 +492,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   ) {
     _owner = owner;
     _name = name;
-    _totalShares = totalShares;
+    _totalShares = Ibank.getTotalShares();
     _tokenAddresses = Ibank.getAllTokenAddresses();
     _successFee = successFee;
   }
@@ -563,6 +549,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
   // calculate the current value of an address's shares in the fund
   function calculateAddressValue(address _address) public view returns (uint256) {
+    uint256 totalShares = Ibank.getTotalShares();
     if (totalShares == 0)
       return 0;
 
@@ -634,6 +621,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   * @param _token    The address of the token to withdraw
   */
   function emergencyWithdraw(address _token) external onlyOwner {
+    uint256 totalShares = Ibank.getTotalShares();
     require(totalShares == 0);
     if (_token == address(ETH_TOKEN_ADDRESS)) {
       msg.sender.transfer(this.balance);
@@ -668,7 +656,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   * @dev Total number of shares in existence
   */
   function totalSupply() public view returns (uint256) {
-    return totalShares;
+    return Ibank.getTotalShares();
   }
 
   /**
