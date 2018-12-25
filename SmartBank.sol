@@ -188,6 +188,34 @@ contract SmartBank is Ownable{
   }
 
   /**
+  * @dev view AddressesNetDeposit mapping by address sender in Bank
+  */
+  function getAddressesNetDeposit(address _sender) public view returns (int256) {
+    return addressesNetDeposit[_sender];
+  }
+
+  /**
+  * @dev Fund can increase addressesNetDeposit mapping by address sender in Bank after deposit
+  *
+  * @return new value of addressesNetDeposit mapping by address sender after increase
+  */
+  function increaseAddressesNetDeposit(address _sender, uint256 _value) public onlyFund returns(int256) {
+    addressesNetDeposit[_sender] += int256(_value);
+    return addressesNetDeposit[_sender];
+  }
+
+
+  /**
+  * @dev Fund can decrease addressesNetDeposit mapping by address sender in Bank after deposit
+  *
+  * @return new value of addressesNetDeposit mapping by address sender after decrease
+  */
+  function decreaseAddressesNetDeposit(address _sender, uint256 _value) public onlyFund returns(int256) {
+    addressesNetDeposit[_sender] -= int256(_value);
+    return addressesNetDeposit[_sender];
+  }
+
+  /**
   * @dev view totalShares var in Bank
   */
   function getTotalShares() public view returns (uint256) {

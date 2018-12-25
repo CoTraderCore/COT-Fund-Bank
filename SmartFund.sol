@@ -79,10 +79,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   // how many shares belong to each address
   mapping (address => uint256) public addressToShares;
 
-  // this is really only being used to more easily show profits, but may not be necessary
-  // if we do a lot of this offchain using events to track everything
-  // total `depositToken` deposited - total `depositToken` withdrawn
-  mapping (address => int256) public addressesNetDeposit;
 
   // Events
   event Deposit(address indexed user, uint256 amount, uint256 sharesReceived, uint256 totalShares);
@@ -283,7 +279,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     // Add shares to address
     addressToShares[msg.sender] = addressToShares[msg.sender].add(shares);
 
-    addressesNetDeposit[msg.sender] += int256(msg.value);
+    //addressesNetDeposit[msg.sender] += int256(msg.value);
+    Ibank.increaseAddressesNetDeposit(msg.sender, msg.value);
 
     emit Deposit(msg.sender, msg.value, shares, totalShares);
 
@@ -351,7 +348,9 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     uint256 valueWithdrawn = fundValue.mul(withdrawShares).div(totalShares);
 
     totalEtherWithdrawn = totalEtherWithdrawn.add(valueWithdrawn);
-    addressesNetDeposit[msg.sender] -= int256(valueWithdrawn);
+
+    //addressesNetDeposit[msg.sender] -= int256(valueWithdrawn);
+    Ibank.decreaseAddressesNetDeposit(msg.sender, msg.value);
 
     // Subtract from total shares the number of withdrawn shares
     totalShares = Ibank.decreaseTotalShares(numberOfWithdrawShares);
@@ -560,7 +559,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   function calculateAddressProfit(address _address) public view returns (int256) {
     uint256 currentAddressValue = calculateAddressValue(_address);
 
-    return int256(currentAddressValue) - addressesNetDeposit[_address];
+    return int256(currentAddressValue) - Ibank.getAddressesNetDeposit(_address);
   }
 
   /**
