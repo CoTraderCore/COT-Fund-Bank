@@ -40,6 +40,9 @@ contract SmartBank is Ownable{
   // the total number of shares in the BANK
   uint256 public totalShares = 0;
 
+  // how many shares belong to each address
+  mapping (address => uint256) public addressToShares;
+
   // this is really only being used to more easily show profits, but may not be necessary
   // if we do a lot of this offchain using events to track everything
   // total `depositToken` deposited - total `depositToken` withdrawn
@@ -186,6 +189,35 @@ contract SmartBank is Ownable{
     delete tokenAddresses[arrayLength];
     tokenAddresses.length--;
   }
+
+
+  /**
+  * @dev view addressToShares mapping by address sender in Bank
+  */
+  function getAddressToShares(address _sender) public view returns (uint256) {
+    return addressToShares[_sender];
+  }
+
+  /**
+  * @dev Fund can increase addressToShares mapping by address sender in Bank after deposit
+  *
+  * @return new value of addressToShares mapping by address sender after increase
+  */
+  function increaseAddressToShares(address _sender, uint256 _value) public onlyFund returns(uint256) {
+    addressToShares[_sender] = addressToShares[_sender].add(_value);
+    return addressToShares[_sender];
+  }
+
+  /**
+  * @dev Fund can decrease addressToShares mapping by address sender in Bank after deposit
+  *
+  * @return new value of addressToShares mapping by address sender after decrease
+  */
+  function decreaseAddressToShares(address _sender, uint256 _value) public onlyFund returns(uint256) {
+    addressToShares[_sender] = addressToShares[_sender].sub(_value);
+    return addressToShares[_sender];
+  }
+
 
   /**
   * @dev view AddressesNetDeposit mapping by address sender in Bank

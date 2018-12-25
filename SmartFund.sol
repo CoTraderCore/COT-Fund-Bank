@@ -76,9 +76,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   // addresses to be able to invest in their fund
   mapping (address => bool) public whitelist;
 
-  // how many shares belong to each address
-  mapping (address => uint256) public addressToShares;
-
 
   // Events
   event Deposit(address indexed user, uint256 amount, uint256 sharesReceived, uint256 totalShares);
@@ -277,7 +274,9 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     uint256 totalShares = Ibank.getTotalShares();
 
     // Add shares to address
-    addressToShares[msg.sender] = addressToShares[msg.sender].add(shares);
+    //addressToShares[msg.sender] = addressToShares[msg.sender].add(shares);
+    uint256 increaseAShares = Ibank.getAddressToShares(msg.sender).add(shares);
+    Ibank.increaseAddressToShares(msg.sender, increaseAShares);
 
     //addressesNetDeposit[msg.sender] += int256(msg.value);
     Ibank.increaseAddressesNetDeposit(msg.sender, msg.value);
@@ -330,7 +329,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
     uint256 percentageWithdraw = (_percentageWithdraw == 0) ? TOTAL_PERCENTAGE : _percentageWithdraw;
 
-    uint256 addressShares = addressToShares[msg.sender];
+    uint256 addressShares = Ibank.getAddressToShares(msg.sender);
 
     uint256 numberOfWithdrawShares = addressShares.mul(percentageWithdraw).div(TOTAL_PERCENTAGE);
 
@@ -354,7 +353,9 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
     // Subtract from total shares the number of withdrawn shares
     totalShares = Ibank.decreaseTotalShares(numberOfWithdrawShares);
-    addressToShares[msg.sender] = addressToShares[msg.sender].sub(numberOfWithdrawShares);
+
+    //addressToShares[msg.sender] = addressToShares[msg.sender].sub(numberOfWithdrawShares);
+    Ibank.decreaseAddressToShares(msg.sender, numberOfWithdrawShares);
 
     emit Withdraw(msg.sender, numberOfWithdrawShares, totalShares);
   }
@@ -552,7 +553,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     if (totalShares == 0)
       return 0;
 
-    return calculateFundValue().mul(addressToShares[_address]).div(totalShares);
+    return calculateFundValue().mul(Ibank.getAddressToShares(_address)).div(totalShares);
   }
 
   // calculate the net profit/loss for an address in this fund
@@ -666,7 +667,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   * @return A uint256 representing the amount owned by the passed address.
   */
   function balanceOf(address _who) public view returns (uint256) {
-    return addressToShares[_who];
+    return Ibank.getAddressToShares(_who);
   }
 
   /**
@@ -679,10 +680,14 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   */
   function transfer(address _to, uint256 _value) public returns (bool) {
     require(_to != address(0));
-    require(_value <= addressToShares[msg.sender]);
+    require(_value <= Ibank.getAddressToShares(msg.sender));
 
-    addressToShares[msg.sender] = addressToShares[msg.sender].sub(_value);
-    addressToShares[_to] = addressToShares[_to].add(_value);
+    //addressToShares[msg.sender] = addressToShares[msg.sender].sub(_value);
+    Ibank.decreaseAddressToShares(msg.sender, _value);
+
+    //addressToShares[_to] = addressToShares[_to].add(_value);
+    Ibank.increaseAddressToShares(_to, _value);
+
     emit Transfer(msg.sender, _to, _value);
     return true;
   }
@@ -698,11 +703,18 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
    */
   function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
     require(_to != address(0));
-    require(_value <= addressToShares[_from]);
+
+    //require(_value <= addressToShares[_from]);
+    require(_value <= Ibank.getAddressToShares(_from));
+
     require(_value <= allowed[_from][msg.sender]);
 
-    addressToShares[_from] = addressToShares[_from].sub(_value);
-    addressToShares[_to] = addressToShares[_to].add(_value);
+    //addressToShares[_from] = addressToShares[_from].sub(_value);
+    Ibank.decreaseAddressToShares(msg.sender, _value);
+
+    //addressToShares[_to] = addressToShares[_to].add(_value);
+    Ibank.increaseAddressToShares(_to, _value);
+    
     allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
     emit Transfer(_from, _to, _value);
     return true;

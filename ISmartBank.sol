@@ -49,4 +49,11 @@ contract ISmartBank {
 
   function decreaseAddressesNetDeposit(address _sender, uint256 _value) public returns(int256);
 
+
+  function getAddressToShares(address _sender) public view returns (uint256);
+
+  function increaseAddressToShares(address _sender, uint256 _value) public returns(uint256);
+
+  function decreaseAddressToShares(address _sender, uint256 _value) public returns(uint256);
+
 }
