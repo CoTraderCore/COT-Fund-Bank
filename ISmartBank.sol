@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
-//import "../zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-//import "./ExchangePortalInterface.sol";
+import "./zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "./ExchangePortalInterface.sol";
 
 contract ISmartBank {
 
