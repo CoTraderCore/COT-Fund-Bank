@@ -51,9 +51,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   // Denomination of initial shares
   uint256 constant private INITIAL_SHARES = 10 ** 18;
 
-  // Total amount of ether withdrawn by all users
-  uint256 public totalEtherWithdrawn = 0;
-
   // The percentage of earnings paid to the fund manager. 10000 = 100%
   // e.g. 10% is 1000
   uint256 public successFee;
@@ -61,9 +58,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   // The percentage of fund manager earnings paid to the platform. 10000 = 100%
   // e.g. 10% is 1000
   uint256 public platformFee;
-
-  // The earnings the fund manager has already cashed out
-  uint256 public fundManagerCashedOut = 0;
 
   // Standart Kyber Parametrs
   bytes32[] KyberAdditionalParams;
@@ -269,17 +263,18 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
     // Add shares to total
     // totalShares = totalShares.add(shares);
-    Ibank.increaseTotalShares(shares);
+    totalShares = Ibank.changeTotalShares(shares, 1);
 
     uint256 totalShares = Ibank.getTotalShares();
 
     // Add shares to address
     //addressToShares[msg.sender] = addressToShares[msg.sender].add(shares);
     uint256 increaseAShares = Ibank.getAddressToShares(msg.sender).add(shares);
-    Ibank.increaseAddressToShares(msg.sender, increaseAShares);
+    //addressToShares[msg.sender] = addressToShares[msg.sender].add(shares);
+    Ibank.changeAddressToShares(msg.sender, increaseAShares, 1);
 
     //addressesNetDeposit[msg.sender] += int256(msg.value);
-    Ibank.increaseAddressesNetDeposit(msg.sender, msg.value);
+    Ibank.changeAddressesNetDeposit(msg.sender, msg.value, 1);
 
     emit Deposit(msg.sender, msg.value, shares, totalShares);
 
@@ -346,16 +341,18 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     // Store the value we are withdrawing in ether
     uint256 valueWithdrawn = fundValue.mul(withdrawShares).div(totalShares);
 
-    totalEtherWithdrawn = totalEtherWithdrawn.add(valueWithdrawn);
+    //totalEtherWithdrawn = totalEtherWithdrawn.add(valueWithdrawn);
+    Ibank.increaseTotalEtherWithdrawn(valueWithdrawn);
 
     //addressesNetDeposit[msg.sender] -= int256(valueWithdrawn);
-    Ibank.decreaseAddressesNetDeposit(msg.sender, msg.value);
+    Ibank.changeAddressesNetDeposit(msg.sender, valueWithdrawn, 0);
 
     // Subtract from total shares the number of withdrawn shares
-    totalShares = Ibank.decreaseTotalShares(numberOfWithdrawShares);
+    // totalShares = totalShares.sub(numberOfWithdrawShares);
+    Ibank.changeTotalShares(numberOfWithdrawShares, 0);
 
     //addressToShares[msg.sender] = addressToShares[msg.sender].sub(numberOfWithdrawShares);
-    Ibank.decreaseAddressToShares(msg.sender, numberOfWithdrawShares);
+    Ibank.changeAddressToShares(msg.sender, numberOfWithdrawShares, 0);
 
     emit Withdraw(msg.sender, numberOfWithdrawShares, totalShares);
   }
@@ -515,6 +512,9 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     // NOTE: value can be negative if the manager performs well and investors withdraw more
     // ether than they deposited
     uint256 totalEtherDeposited = Ibank.getTotalEtherDeposited();
+    uint256 totalEtherWithdrawn = Ibank.getTotalEtherWithdrawn();
+    uint256 fundManagerCashedOut = Ibank.getFundManagerCashedOut();
+
     int256 curTotalEtherDeposited = int256(totalEtherDeposited) - int256(totalEtherWithdrawn.add(fundManagerCashedOut));
 
     // If profit < 0, the fund managers totalCut and remainingCut are 0
@@ -544,7 +544,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     _withdraw(platformCut, fundValue, platformAddress);
     _withdraw(fundManagerCut - platformCut, fundValue, msg.sender);
 
-    fundManagerCashedOut = fundManagerCashedOut.add(fundManagerCut);
+    //fundManagerCashedOut = fundManagerCashedOut.add(fundManagerCut);
+    Ibank.increaseFundManagerCashedOut(fundManagerCut);
   }
 
   // calculate the current value of an address's shares in the fund
@@ -571,6 +572,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   function calculateFundProfit() public view returns (int256) {
     uint256 fundValue = calculateFundValue();
     uint256 totalEtherDeposited = Ibank.getTotalEtherDeposited();
+    uint256 totalEtherWithdrawn = Ibank.getTotalEtherWithdrawn();
+
     return int256(fundValue) + int256(totalEtherWithdrawn) - int256(totalEtherDeposited);
   }
 
@@ -683,10 +686,10 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     require(_value <= Ibank.getAddressToShares(msg.sender));
 
     //addressToShares[msg.sender] = addressToShares[msg.sender].sub(_value);
-    Ibank.decreaseAddressToShares(msg.sender, _value);
+    Ibank.changeAddressToShares(msg.sender, _value, 0);
 
     //addressToShares[_to] = addressToShares[_to].add(_value);
-    Ibank.increaseAddressToShares(_to, _value);
+    Ibank.changeAddressToShares(_to, _value, 1);
 
     emit Transfer(msg.sender, _to, _value);
     return true;
@@ -710,11 +713,11 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     require(_value <= allowed[_from][msg.sender]);
 
     //addressToShares[_from] = addressToShares[_from].sub(_value);
-    Ibank.decreaseAddressToShares(msg.sender, _value);
+    Ibank.changeAddressToShares(_from, _value, 0);
 
     //addressToShares[_to] = addressToShares[_to].add(_value);
-    Ibank.increaseAddressToShares(_to, _value);
-    
+    Ibank.changeAddressToShares(_to, _value, 1);
+
     allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
     emit Transfer(_from, _to, _value);
     return true;

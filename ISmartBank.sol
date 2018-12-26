@@ -38,22 +38,26 @@ contract ISmartBank {
 
   function getTotalShares() public view returns (uint256);
 
-  function increaseTotalShares(uint256 _value) public;
-
-  function decreaseTotalShares(uint256 _value) public returns(uint256);
+  function changeTotalShares(uint256 _value, uint _type) public returns(uint256);
 
 
   function getAddressesNetDeposit(address _sender) public view returns (int256);
 
-  function increaseAddressesNetDeposit(address _sender, uint256 _value) public returns(int256);
-
-  function decreaseAddressesNetDeposit(address _sender, uint256 _value) public returns(int256);
+  function changeAddressesNetDeposit(address _sender, uint256 _value, uint _type) public returns(int256);
 
 
   function getAddressToShares(address _sender) public view returns (uint256);
 
-  function increaseAddressToShares(address _sender, uint256 _value) public returns(uint256);
+  function changeAddressToShares(address _sender, uint256 _value, uint _type) public returns(uint256);
 
-  function decreaseAddressToShares(address _sender, uint256 _value) public returns(uint256);
+
+  function getTotalEtherWithdrawn() public view returns (uint256);
+
+  function increaseTotalEtherWithdrawn(uint256 _value) public returns(uint256);
+
+
+  function getFundManagerCashedOut() public view returns (uint256);
+
+  function increaseFundManagerCashedOut(uint256 _value) public returns(uint256);
 
 }

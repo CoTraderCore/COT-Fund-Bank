@@ -48,6 +48,12 @@ contract SmartBank is Ownable{
   // total `depositToken` deposited - total `depositToken` withdrawn
   mapping (address => int256) public addressesNetDeposit;
 
+  // Total amount of ether withdrawn by all users
+  uint256 public totalEtherWithdrawn = 0;
+
+  // The earnings the fund manager has already cashed out
+  uint256 public fundManagerCashedOut = 0;
+
 
 
   /**
@@ -192,6 +198,25 @@ contract SmartBank is Ownable{
 
 
   /**
+  * @dev Fund can send ETH from BANK via Interface
+  * @param _value ETH value in wei
+  */
+  function sendETH(address _to, uint256 _value) public onlyFund{
+    // TODO add add check balance ETH and  allowance modifiers
+    _to.transfer(_value);
+  }
+
+  /**
+  * @dev Fund can send tokens from BANK via Interface
+  * @param _value ETH value in wei
+  */
+  function sendTokens(address _to, uint256 _value, ERC20 _token) public onlyFund{
+    // TODO add and balance and allowance modifiers
+    _token.transfer(_to, _value);
+  }
+
+
+  /**
   * @dev view addressToShares mapping by address sender in Bank
   */
   function getAddressToShares(address _sender) public view returns (uint256) {
@@ -199,22 +224,21 @@ contract SmartBank is Ownable{
   }
 
   /**
-  * @dev Fund can increase addressToShares mapping by address sender in Bank after deposit
+  * @dev Fund can change addressToShares mapping by address sender in Bank
   *
-  * @return new value of addressToShares mapping by address sender after increase
-  */
-  function increaseAddressToShares(address _sender, uint256 _value) public onlyFund returns(uint256) {
-    addressToShares[_sender] = addressToShares[_sender].add(_value);
-    return addressToShares[_sender];
-  }
-
-  /**
-  * @dev Fund can decrease addressToShares mapping by address sender in Bank after deposit
+  * @return new value of addressToShares mapping by address sender after change
   *
-  * @return new value of addressToShares mapping by address sender after decrease
+  * @param _type 1 - add 0 - sub
   */
-  function decreaseAddressToShares(address _sender, uint256 _value) public onlyFund returns(uint256) {
-    addressToShares[_sender] = addressToShares[_sender].sub(_value);
+  function changeAddressToShares(address _sender, uint256 _value, uint _type) public onlyFund returns(uint256) {
+    if(_type == 1){
+      addressToShares[_sender] = addressToShares[_sender].add(_value);
+    }else if(_type == 0){
+      addressToShares[_sender] = addressToShares[_sender].sub(_value);
+    }
+    else {
+      revert();
+    }
     return addressToShares[_sender];
   }
 
@@ -227,25 +251,23 @@ contract SmartBank is Ownable{
   }
 
   /**
-  * @dev Fund can increase addressesNetDeposit mapping by address sender in Bank after deposit
+  * @dev Fund can change addressesNetDeposit mapping by address sender in Bank
   *
-  * @return new value of addressesNetDeposit mapping by address sender after increase
+  * @return new value of addressesNetDeposit mapping by address sender after change
+  *
+  * @param _type 1 - add 0 - sub
   */
-  function increaseAddressesNetDeposit(address _sender, uint256 _value) public onlyFund returns(int256) {
-    addressesNetDeposit[_sender] += int256(_value);
+  function changeAddressesNetDeposit(address _sender, uint256 _value, uint _type) public onlyFund returns(int256) {
+    if(_type == 1){
+      addressesNetDeposit[_sender] += int256(_value);
+    }else if(_type == 0){
+      addressesNetDeposit[_sender] -= int256(_value);
+    }else{
+      revert();
+    }
     return addressesNetDeposit[_sender];
   }
 
-
-  /**
-  * @dev Fund can decrease addressesNetDeposit mapping by address sender in Bank after deposit
-  *
-  * @return new value of addressesNetDeposit mapping by address sender after decrease
-  */
-  function decreaseAddressesNetDeposit(address _sender, uint256 _value) public onlyFund returns(int256) {
-    addressesNetDeposit[_sender] -= int256(_value);
-    return addressesNetDeposit[_sender];
-  }
 
   /**
   * @dev view totalShares var in Bank
@@ -255,22 +277,20 @@ contract SmartBank is Ownable{
   }
 
   /**
-  * @dev Fund can increase totalShares var in Bank after deposit
+  * @dev Fund can increase or decrease totalShares var in Bank
   *
-  * @return new value of totalShares after increase
-  */
-  function increaseTotalShares(uint256 _value) public onlyFund returns(uint256) {
-    totalShares = totalShares.add(_value);
-    return totalShares;
-  }
-
-  /**
-  * @dev Fund can decrease totalShares var in Bank after deposit
+  * @return new value of totalShares after increase or decrease
   *
-  * @return new value of totalShares after decrease
+  * @param _type 0 - sub 1 - ad
   */
-  function decreaseTotalShares(uint256 _value) public onlyFund returns(uint256) {
-    totalShares = totalShares.sub(_value);
+  function changeTotalShares(uint256 _value, uint _type) public onlyFund returns(uint256) {
+    if(_type == 1){
+      totalShares = totalShares.add(_value);
+    }else if(_type == 0){
+      totalShares = totalShares.sub(_value);
+    }else{
+      revert();
+    }
     return totalShares;
   }
 
@@ -314,22 +334,40 @@ contract SmartBank is Ownable{
   }
 
   /**
-  * @dev Fund can send ETH from BANK via Interface
-  * @param _value ETH value in wei
+  * @dev view totalEtherWithdrawn var in Bank
   */
-  function sendETH(address _to, uint256 _value) public onlyFund{
-    // TODO add add check balance ETH and  allowance modifiers
-    _to.transfer(_value);
+  function getTotalEtherWithdrawn() public view returns (uint256) {
+    return totalEtherWithdrawn;
   }
 
   /**
-  * @dev Fund can send tokens from BANK via Interface
-  * @param _value ETH value in wei
+  * @dev Fund can increase totalEtherWithdrawn var in Bank after windraw in Fund
+  *
+  * @return new value of totalEtherWithdrawn after increase
   */
-  function sendTokens(address _to, uint256 _value, ERC20 _token) public onlyFund{
-    // TODO add and balance and allowance modifiers
-    _token.transfer(_to, _value);
+  function increaseTotalEtherWithdrawn(uint256 _value) public onlyFund returns(uint256) {
+    totalEtherWithdrawn = totalEtherWithdrawn.add(_value);
+    return totalEtherWithdrawn;
   }
+
+
+  /**
+  * @dev view fundManagerCashedOut var in Bank
+  */
+  function getFundManagerCashedOut() public view returns (uint256) {
+    return fundManagerCashedOut;
+  }
+
+  /**
+  * @dev Fund can increase fundManagerCashedOut var in Bank after windraw in Fund
+  *
+  * @return new value of fundManagerCashedOut after increase
+  */
+  function increaseFundManagerCashedOut(uint256 _value) public onlyFund returns(uint256) {
+    fundManagerCashedOut = fundManagerCashedOut.add(_value);
+    return fundManagerCashedOut;
+  }
+
 
   /**
   * @dev This method is present in the alpha testing phase in case for some reason there are funds
