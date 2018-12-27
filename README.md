@@ -40,4 +40,5 @@
 8) Calculation with Rebalance
 
 #NOTE
-1) Enable Solc Optimization for SmartFundRegistry
+1) REMIX Enable Solc Optimization for SmartFundRegistry
+2) Ropsten Deploy via truffle work gas settings - gas: 7512388 gasPrice: 30000000000
