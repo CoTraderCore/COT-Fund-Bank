@@ -269,9 +269,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
     // Add shares to address
     //addressToShares[msg.sender] = addressToShares[msg.sender].add(shares);
-    uint256 increaseAShares = Ibank.getAddressToShares(msg.sender).add(shares);
     //addressToShares[msg.sender] = addressToShares[msg.sender].add(shares);
-    Ibank.changeAddressToShares(msg.sender, increaseAShares, 1);
+    Ibank.changeAddressToShares(msg.sender, shares, 1);
 
     //addressesNetDeposit[msg.sender] += int256(msg.value);
     Ibank.changeAddressesNetDeposit(msg.sender, msg.value, 1);
