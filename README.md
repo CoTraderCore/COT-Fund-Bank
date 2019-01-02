@@ -1,5 +1,5 @@
 
-#Process
+# Process
 
 1) Create SmartBank
 2) Create ISmartBank for SmartFund
@@ -17,10 +17,10 @@
 14) Add to interface for this vars and mappings for fund
 15) Remove unnecessary from smart fund
 
-#NEXT
+# NEXT
 1) Calculation for reabalance
 
-#TODO
+# TODO
 1) Add two factory functions Create Smart Fund for already existing Bank and Create SmartFund With Bank
 2) ADD EVENTs like fund set in bank, fund change in bank ect.
 3) ADD additional modifiers
@@ -28,7 +28,7 @@
 5) Remove Debug comments
 
 
-#TODO Write Unit TEST
+# TODO Write Unit TEST
 1) OnlyFund and OnlyOwner permissions
 2) Change SmartFund in SmartBank
 3) Change SmartBank in SmartFund
@@ -38,6 +38,6 @@
 7) Rebalance with several deposit at the same time
 8) Calculation with Rebalance
 
-#NOTE
+# NOTE
 1) REMIX Enable Solc Optimization for SmartFundRegistry
 2) Ropsten Deploy via truffle work gas settings - gas: 7512388 gasPrice: 30000000000
