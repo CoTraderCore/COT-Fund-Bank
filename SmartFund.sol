@@ -66,6 +66,9 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   // only specific addresses approved by the manager
   bool public onlyWhitelist = false;
 
+  // allow owner of fund disable/enable rebalance
+  bool public isRebalance = true;
+
   // Mapping of addresses that are approved to deposit if the manager only want's specific
   // addresses to be able to invest in their fund
   mapping (address => bool) public whitelist;
@@ -141,6 +144,18 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     isBankSet = true;
   }
 
+  /**
+  * @dev owner can enable/disable rebalance
+  */
+
+  function rebalanceToggle() public onlyOwner{
+    if(isRebalance){
+      isRebalance = false;
+    }else{
+      isRebalance = true;
+    }
+  }
+
 
   /**
   * @dev contract SmartFundRegistry can set BANK in FUND during initialization
@@ -180,7 +195,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   function _rebalance(uint256 _value, uint256 _type) private{
   require(isBankSet);
 
-  if(Ibank.TokensLength() > 1){
+  if(Ibank.TokensLength() > 1 && isRebalance){
 
   // checking if not empty token array
   // array should be more 1 because we store ETH in token array also
@@ -269,6 +284,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
     // Add shares to address
     //addressToShares[msg.sender] = addressToShares[msg.sender].add(shares);
+    // uint256 increaseAShares = Ibank.getAddressToShares(msg.sender).add(shares);
     //addressToShares[msg.sender] = addressToShares[msg.sender].add(shares);
     Ibank.changeAddressToShares(msg.sender, shares, 1);
 
