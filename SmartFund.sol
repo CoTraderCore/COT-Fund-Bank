@@ -278,9 +278,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
     // Add shares to total
     // totalShares = totalShares.add(shares);
-    totalShares = Ibank.changeTotalShares(shares, 1);
-
-    uint256 totalShares = Ibank.getTotalShares();
+    uint256 totalShares = Ibank.changeTotalShares(shares, 1);
 
     // Add shares to address
     //addressToShares[msg.sender] = addressToShares[msg.sender].add(shares);
@@ -364,7 +362,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
     // Subtract from total shares the number of withdrawn shares
     // totalShares = totalShares.sub(numberOfWithdrawShares);
-    Ibank.changeTotalShares(numberOfWithdrawShares, 0);
+    totalShares = Ibank.changeTotalShares(numberOfWithdrawShares, 0);
 
     //addressToShares[msg.sender] = addressToShares[msg.sender].sub(numberOfWithdrawShares);
     Ibank.changeAddressToShares(msg.sender, numberOfWithdrawShares, 0);
